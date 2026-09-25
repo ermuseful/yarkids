@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Собери слово — Дополнительные карточки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', -apple-system, 'Segoe UI', system-ui, sans-serif;
+    background: #eadbc1;
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(200,149,109,0.15) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(200,149,109,0.12) 0%, transparent 45%);
+    min-height: 100vh;
+    color: #4a3520;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+  }
+
+  #app { width: 100%; max-width: 640px; }
+
+  header { text-align: center; padding: 16px 0 24px; }
+  header h1 { font-size: 28px; color: #5c3d1f; letter-spacing: 0.5px; }
+  header p { font-size: 13px; color: #8b6b48; margin-top: 6px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ---------- Экран выбора уровня ---------- */
+  .levels { display: grid; gap: 16px; margin-top: 8px; }
+
+  .level-btn {
+    border: none;
+    border-radius: 20px;
+    padding: 22px 24px;
+    background: linear-gradient(180deg, #e8c9a0, #d4a373);
+    box-shadow: 0 5px 0 #a67a55, 0 8px 20px rgba(120,80,40,0.2);
+    cursor: pointer;
+    text-align: left;
+    color: #4a2a10;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .level-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #a67a55, 0 10px 24px rgba(120,80,40,0.25); }
+  .level-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #a67a55; }
+
+  .level-num { font-size: 44px; font-weight: 900; line-height: 1; color: #6b3f1a; min-width: 50px; text-align: center; }
+  .level-info { display: flex; flex-direction: column; gap: 4px; }
+  .level-title { font-size: 18px; font-weight: 800; }
+  .level-sub { font-size: 13px; opacity: 0.75; }
+
+  /* ---------- Логотип ---------- */
+  .brand {
+    display: flex;
+    justify-content: center;
+    margin-top: 48px;
+    padding: 8px 0 24px;
+  }
+
+  .brand img {
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    mix-blend-mode: multiply;
+    filter: drop-shadow(0 6px 14px rgba(120,80,40,0.15));
+  }
+
+  /* ---------- Экран карточки ---------- */
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+  .back-btn {
+    border: 1px solid rgba(160,120,80,0.3);
+    background: rgba(255,255,255,0.6);
+    color: #5c3d1f;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.9); }
+
+  .counter { font-size: 14px; font-weight: 800; color: #7a5a35; }
+
+  /* ---------- Переключатели ---------- */
+  .toggles {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .toggle {
+    border: 1.5px solid rgba(160,120,80,0.35);
+    background: rgba(255,255,255,0.55);
+    color: #5c3d1f;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .toggle .t-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 900;
+    background: rgba(160,120,80,0.2);
+    color: #7a5a35;
+    transition: all 0.15s;
+  }
+
+  .toggle.active {
+    background: linear-gradient(180deg, #f0dab6, #e6c69e);
+    border-color: #a67a55;
+    box-shadow: 0 2px 0 rgba(160,120,80,0.35);
+  }
+
+  .toggle.active .t-icon {
+    background: #7ab648;
+    color: #fff;
+  }
+
+  .toggle:not(.active) {
+    opacity: 0.55;
+    background: rgba(255,255,255,0.3);
+  }
+
+  .toggle:not(.active) .t-icon {
+    background: rgba(160,120,80,0.2);
+    color: #a67a55;
+  }
+
+  .toggle:not(.active) .t-label {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+  }
+
+  .toggle:hover { transform: translateY(-1px); }
+  .toggle:active { transform: translateY(1px); }
+
+  /* Карточка-домик */
+  .card {
+    background: linear-gradient(180deg, #f7ecd7, #ecdcbe);
+    border-radius: 28px;
+    padding: 22px 20px 24px;
+    box-shadow:
+      inset 0 2px 6px rgba(255,255,255,0.8),
+      inset 0 -3px 0 rgba(180,140,90,0.25),
+      0 6px 18px rgba(120,80,40,0.15);
+    position: relative;
+  }
+
+  /* Белая карточка со словом */
+  .word-card {
+    background: #fffdf8;
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    box-shadow: 0 3px 0 rgba(180,140,90,0.35), 0 5px 14px rgba(120,80,40,0.12);
+    margin-bottom: 20px;
+    border: 1.5px solid rgba(200,160,110,0.4);
+    min-height: 92px;
+  }
+
+  .word-card .pic {
+    font-size: 52px;
+    line-height: 1;
+    user-select: none;
+    transition: opacity 0.2s;
+  }
+
+  .word-card .word {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    line-height: 1;
+    transition: opacity 0.2s;
+  }
+  .word-card .word .vowel { color: #d32f2f; }
+  .word-card .word .consonant { color: #1976d2; }
+
+  .pic.hidden, .word.hidden { display: none; }
+
+  /* Деревянный стенд со слотами */
+  .stand {
+    background: linear-gradient(180deg, #e6cba3, #d4b184);
+    border-radius: 18px;
+    padding: 18px 14px;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.4),
+      inset 0 -4px 0 rgba(150,110,70,0.35),
+      0 4px 0 rgba(140,100,60,0.25);
+    position: relative;
+  }
+
+  .stand::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 10px;
+    background: linear-gradient(180deg, #c9a577, #b88f5f);
+    border-radius: 6px 6px 0 0;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,0.25);
+  }
+
+  .slots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .slot {
+    width: 68px;
+    height: 68px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f3dfbe, #e8c9a0);
+    border: 2.5px solid #b88a5f;
+    box-shadow:
+      inset 0 2px 3px rgba(255,255,255,0.7),
+      0 3px 0 #9d7148,
+      0 4px 8px rgba(120,80,40,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1;
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  .slot::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #c9a577, #8b6b48);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  }
+
+  .slot.vowel { color: #d32f2f; }
+  .slot.consonant { color: #1976d2; }
+
+  .slot.empty {
+    background: linear-gradient(180deg, #d9bf99, #c9a577);
+    box-shadow:
+      inset 0 3px 5px rgba(120,80,40,0.3),
+      0 3px 0 #9d7148;
+    color: transparent;
+  }
+
+  /* ---------- Навигация ---------- */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .nav-btn {
+    flex: 1;
+    border: none;
+    background: linear-gradient(180deg, #e8c9a0, #d4a373);
+    box-shadow: 0 4px 0 #a67a55;
+    color: #4a2a10;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 800;
+    padding: 14px 18px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s, opacity 0.15s;
+  }
+  .nav-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #a67a55; }
+  .nav-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #a67a55; }
+  .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: 0 4px 0 rgba(150,110,70,0.4); }
+
+  /* ---------- Точки ---------- */
+  .dots {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 18px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(160,120,80,0.3);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .dot:hover { transform: scale(1.3); }
+  .dot.active { background: #a67a55; transform: scale(1.35); }
+
+  /* ---------- Адаптив ---------- */
+  @media (max-width: 480px) {
+    body { padding: 12px; }
+    header h1 { font-size: 22px; }
+    header { padding: 10px 0 16px; }
+    .card { padding: 18px 12px 20px; border-radius: 22px; }
+    .word-card { padding: 12px 14px; gap: 12px; margin-bottom: 16px; min-height: 76px; }
+    .word-card .pic { font-size: 42px; }
+    .word-card .word { font-size: 30px; letter-spacing: 2px; }
+    .stand { padding: 16px 10px; }
+    .slots { gap: 7px; }
+    .slot { width: 54px; height: 54px; font-size: 30px; border-radius: 12px; }
+    .level-btn { padding: 18px 20px; }
+    .level-num { font-size: 36px; min-width: 42px; }
+    .nav-btn { padding: 12px 14px; font-size: 14px; }
+    .toggle { font-size: 12px; padding: 7px 11px; }
+    .brand { margin-top: 32px; }
+    .brand img { max-width: 260px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <h1>Собери слово</h1>
+    <p>Дополнительные карточки к деревянной игре</p>
+  </header>
+
+  <!-- Экран выбора уровня -->
+  <section id="levelScreen" class="screen active">
+    <div class="levels">
+      <button class="level-btn" data-level="3">
+        <div class="level-num">3</div>
+        <div class="level-info">
+          <div class="level-title">Простые слова</div>
+          <div class="level-sub">20 карточек · 3 буквы</div>
+        </div>
+      </button>
+      <button class="level-btn" data-level="4">
+        <div class="level-num">4</div>
+        <div class="level-info">
+          <div class="level-title">Средний уровень</div>
+          <div class="level-sub">20 карточек · 4 буквы</div>
+        </div>
+      </button>
+      <button class="level-btn" data-level="5">
+        <div class="level-num">5</div>
+        <div class="level-info">
+          <div class="level-title">Сложные слова</div>
+          <div class="level-sub">20 карточек · 5 букв</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- Логотип под кнопками -->
+    <div class="brand">
+      <img src="logo.png" alt="Яркиас">
+    </div>
+  </section>
+
+  <!-- Экран карточки -->
+  <section id="cardScreen" class="screen">
+    <div class="topbar">
+      <button class="back-btn" id="backBtn">← Уровни</button>
+      <div class="counter" id="counter">Карточка 1 из 20</div>
+    </div>
+
+    <div class="toggles">
+      <button class="toggle active" data-toggle="word" title="Показать/скрыть слово на карточке">
+        <span class="t-icon">✓</span>
+        <span class="t-label">Слово</span>
+      </button>
+      <button class="toggle active" data-toggle="pic" title="Показать/скрыть картинку на карточке">
+        <span class="t-icon">✓</span>
+        <span class="t-label">Картинка</span>
+      </button>
+      <button class="toggle active" data-toggle="letters" title="Показать/скрыть буквы на панели">
+        <span class="t-icon">✓</span>
+        <span class="t-label">Буквы</span>
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="word-card">
+        <div class="pic" id="pic">🐱</div>
+        <div class="word" id="word"></div>
+      </div>
+
+      <div class="stand">
+        <div class="slots" id="slots"></div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="nav-btn" id="prevBtn">← Назад</button>
+      <button class="nav-btn" id="nextBtn">Вперёд →</button>
+    </div>
+
+    <div class="dots" id="dots"></div>
+  </section>
+
+</div>
+
+<script>
+/* ------------------- Данные ------------------- */
+const WORDS = {
+  3: [
+    { w: 'КОТ', e: '🐱' }, { w: 'ДОМ', e: '🏠' }, { w: 'ЛЕС', e: '🌲' },
+    { w: 'СЫР', e: '🧀' }, { w: 'МЯЧ', e: '⚽' }, { w: 'ЛУК', e: '🧅' },
+    { w: 'ЖУК', e: '🐞' }, { w: 'РАК', e: '🦞' }, { w: 'СОК', e: '🧃' },
+    { w: 'НОС', e: '👃' }, { w: 'РОТ', e: '👄' }, { w: 'ЗУБ', e: '🦷' },
+    { w: 'ЛЕВ', e: '🦁' }, { w: 'КИТ', e: '🐋' }, { w: 'БЫК', e: '🐂' },
+    { w: 'МАК', e: '🌺' }, { w: 'ДУБ', e: '🌳' }, { w: 'МЕД', e: '🍯' },
+    { w: 'ЧАЙ', e: '🍵' }, { w: 'СУП', e: '🍲' }
+  ],
+  4: [
+    { w: 'ЛИСА', e: '🦊' }, { w: 'ВОЛК', e: '🐺' }, { w: 'СЛОН', e: '🐘' },
+    { w: 'ТИГР', e: '🐯' }, { w: 'ЗАЯЦ', e: '🐰' }, { w: 'КОЗА', e: '🐐' },
+    { w: 'УТКА', e: '🦆' }, { w: 'СОВА', e: '🦉' }, { w: 'ЖАБА', e: '🐸' },
+    { w: 'ЛУНА', e: '🌙' }, { w: 'НЕБО', e: '☁️' }, { w: 'ГОРА', e: '⛰️' },
+    { w: 'РЕКА', e: '🏞️' }, { w: 'МОРЕ', e: '🌊' }, { w: 'СТУЛ', e: '🪑' },
+    { w: 'РОЗА', e: '🌹' }, { w: 'КЛЮЧ', e: '🔑' }, { w: 'КЕКС', e: '🧁' },
+    { w: 'ХЛЕБ', e: '🍞' }, { w: 'РУКА', e: '✋' }
+  ],
+  5: [
+    { w: 'ЛИМОН', e: '🍋' }, { w: 'ПИРОГ', e: '🥧' }, { w: 'ГРУША', e: '🍐' },
+    { w: 'ШАПКА', e: '🧢' }, { w: 'ТЫКВА', e: '🎃' }, { w: 'ПЕРЕЦ', e: '🌶️' },
+    { w: 'ПТИЦА', e: '🐦' }, { w: 'ЛОЖКА', e: '🥄' }, { w: 'ВИЛКА', e: '🍴' },
+    { w: 'ЧАШКА', e: '☕' }, { w: 'ВЕТКА', e: '🌿' }, { w: 'ТРАВА', e: '🌱' },
+    { w: 'ВЕТЕР', e: '💨' }, { w: 'ВЕСНА', e: '🌸' }, { w: 'ОСЕНЬ', e: '🍂' },
+    { w: 'ДИВАН', e: '🛋️' }, { w: 'ПОЛКА', e: '📚' }, { w: 'КРЫША', e: '🏠' },
+    { w: 'ЗАМОК', e: '🏰' }, { w: 'БУКЕТ', e: '💐' }
+  ]
+};
+
+const VOWELS = new Set('АЕЁИОУЫЭЮЯ'.split(''));
+const isVowel = ch => VOWELS.has(ch);
+
+/* ------------------- Состояние ------------------- */
+const state = {
+  level: 3,
+  words: [],
+  index: 0,
+  show: {
+    word: true,
+    pic: true,
+    letters: true
+  }
+};
+
+/* ------------------- DOM ------------------- */
+const levelScreen = document.getElementById('levelScreen');
+const cardScreen  = document.getElementById('cardScreen');
+const picEl       = document.getElementById('pic');
+const wordEl      = document.getElementById('word');
+const slotsEl     = document.getElementById('slots');
+const counterEl   = document.getElementById('counter');
+const prevBtn     = document.getElementById('prevBtn');
+const nextBtn     = document.getElementById('nextBtn');
+const dotsEl      = document.getElementById('dots');
+
+function showScreen(name) {
+  [levelScreen, cardScreen].forEach(s => s.classList.remove('active'));
+  if (name === 'levels') levelScreen.classList.add('active');
+  if (name === 'card')   cardScreen.classList.add('active');
+}
+
+/* ------------------- Рендер карточки ------------------- */
+function startLevel(level) {
+  state.level = level;
+  state.words = WORDS[level];
+  state.index = 0;
+  showScreen('card');
+  renderCard();
+  renderDots();
+}
+
+function renderCard() {
+  const item = state.words[state.index];
+  const word = item.w;
+
+  picEl.textContent = item.e;
+
+  wordEl.innerHTML = '';
+  for (const ch of word) {
+    const span = document.createElement('span');
+    span.className = isVowel(ch) ? 'vowel' : 'consonant';
+    span.textContent = ch;
+    wordEl.appendChild(span);
+  }
+
+  slotsEl.innerHTML = '';
+  for (const ch of word) {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    if (state.show.letters) {
+      slot.classList.add(isVowel(ch) ? 'vowel' : 'consonant');
+      slot.textContent = ch;
+    } else {
+      slot.classList.add('empty');
+      slot.textContent = '';
+    }
+    slotsEl.appendChild(slot);
+  }
+
+  wordEl.classList.toggle('hidden', !state.show.word);
+  picEl.classList.toggle('hidden', !state.show.pic);
+
+  counterEl.textContent = `Карточка ${state.index + 1} из ${state.words.length}`;
+  prevBtn.disabled = state.index === 0;
+  nextBtn.disabled = state.index === state.words.length - 1;
+
+  [...dotsEl.children].forEach((d, i) => {
+    d.classList.toggle('active', i === state.index);
+  });
+}
+
+function renderDots() {
+  dotsEl.innerHTML = '';
+  state.words.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === state.index ? ' active' : '');
+    dot.addEventListener('click', () => {
+      state.index = i;
+      renderCard();
+    });
+    dotsEl.appendChild(dot);
+  });
+}
+
+/* ------------------- Переключатели ------------------- */
+document.querySelectorAll('.toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.toggle;
+    state.show[key] = !state.show[key];
+    btn.classList.toggle('active', state.show[key]);
+    const icon = btn.querySelector('.t-icon');
+    icon.textContent = state.show[key] ? '✓' : '✕';
+    renderCard();
+  });
+});
+
+/* ------------------- Навигация ------------------- */
+document.querySelectorAll('.level-btn').forEach(btn => {
+  btn.addEventListener('click', () => startLevel(parseInt(btn.dataset.level, 10)));
+});
+
+document.getElementById('backBtn').addEventListener('click', () => showScreen('levels'));
+
+prevBtn.addEventListener('click', () => {
+  if (state.index > 0) {
+    state.index--;
+    renderCard();
+  }
+});
+
+nextBtn.addEventListener('click', () => {
+  if (state.index < state.words.length - 1) {
+    state.index++;
+    renderCard();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (!cardScreen.classList.contains('active')) return;
+  if (e.key === 'ArrowLeft'  && state.index > 0) { state.index--; renderCard(); }
+  if (e.key === 'ArrowRight' && state.index < state.words.length - 1) { state.index++; renderCard(); }
+  if (e.key === 'Escape') showScreen('levels');
+
+  const map = { '1': 'word', '2': 'pic', '3': 'letters' };
+  if (map[e.key]) {
+    const btn = document.querySelector(`.toggle[data-toggle="${map[e.key]}"]`);
+    if (btn) btn.click();
+  }
+});
+
+let touchStartX = 0;
+cardScreen.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+cardScreen.addEventListener('touchend', e => {
+  const diff = e.changedTouches[0].screenX - touchStartX;
+  if (Math.abs(diff) < 50) return;
+  if (diff > 0 && state.index > 0) { state.index--; renderCard(); }
+  if (diff < 0 && state.index < state.words.length - 1) { state.index++; renderCard(); }
+}, { passive: true });
+</script>
+</body>
+</html>
